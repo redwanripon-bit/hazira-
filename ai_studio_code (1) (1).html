@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0f766e">
+  <title>হাজিরা খাতা - Student Roll Call</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    :root {
+      --primary: #0f766e;
+      --primary-dark: #115e59;
+      --primary-light: #ccfbf1;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      
+      --p-color: #15803d;
+      --p-bg: #dcfce7;
+      --a-color: #b91c1c;
+      --a-bg: #fee2e2;
+      --l-color: #b45309;
+      --l-bg: #fef3c7;
+      --lv-color: #1d4ed8;
+      --lv-bg: #dbeafe;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hind Siliguri", sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding-bottom: 75px; -webkit-tap-highlight-color: transparent; }
+
+    /* Top App Bar */
+    header {
+      background-color: var(--primary);
+      color: white;
+      padding: 12px 16px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .header-title { font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; justify-content: space-between; }
+    .header-sub { font-size: 0.78rem; opacity: 0.9; margin-top: 2px; }
+
+    /* Bottom Navigation */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: var(--surface);
+      display: flex;
+      border-top: 1px solid var(--border);
+      z-index: 50;
+    }
+    .nav-btn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .nav-btn.active { color: var(--primary); }
+    .nav-btn svg { width: 22px; height: 22px; margin-bottom: 2px; fill: currentColor; }
+
+    /* Layout Containers */
+    .tab-content { display: none; padding: 12px; max-width: 650px; margin: 0 auto; }
+    .tab-content.active { display: block; }
+    .card {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+
+    /* Form Controls */
+    label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; }
+    input, select {
+      width: 100%;
+      height: 44px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font-size: 0.95rem;
+      color: var(--text);
+      outline: none;
+      margin-bottom: 12px;
+    }
+    input:focus, select:focus { border-color: var(--primary); }
+
+    .btn {
+      min-height: 44px;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn-primary { background: var(--primary); color: white; width: 100%; }
+    .btn-primary:active { background: var(--primary-dark); }
+    .btn-secondary { background: #e2e8f0; color: #334155; }
+    .btn-danger { background: var(--a-bg); color: var(--a-color); }
+    .btn-sm { min-height: 36px; padding: 6px 12px; font-size: 0.8rem; }
+
+    /* Daily Attendance Bar */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .stat-box { padding: 8px 4px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; }
+    .stat-box span { display: block; font-size: 1.15rem; font-weight: 800; }
+    .stat-p { background: var(--p-bg); color: var(--p-color); }
+    .stat-a { background: var(--a-bg); color: var(--a-color); }
+    .stat-l { background: var(--l-bg); color: var(--l-color); }
+    .stat-lv { background: var(--lv-bg); color: var(--lv-color); }
+
+    /* Attendance Row Card */
+    .student-item {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .student-item:last-child { border-bottom: none; }
+    .student-info { display: flex; align-items: baseline; gap: 8px; }
+    .student-roll {
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      font-weight: 800;
+      font-size: 0.9rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+      min-width: 44px;
+      text-align: center;
+    }
+    .student-name { font-weight: 600; font-size: 0.95rem; }
+
+    /* 4-way Toggle for Attendance */
+    .att-toggle {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+    .att-btn {
+      height: 42px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: white;
+      font-weight: 700;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+    .att-btn.active-P { background: var(--p-color); color: white; border-color: var(--p-color); }
+    .att-btn.active-A { background: var(--a-color); color: white; border-color: var(--a-color); }
+    .att-btn.active-L { background: var(--l-color); color: white; border-color: var(--l-color); }
+    .att-btn.active-Lv { background: var(--lv-color); color: white; border-color: var(--lv-color); }
+
+    /* Modal / Dialog */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 100;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    .modal-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; }
+    .modal-actions { display: flex; gap: 8px; margin-top: 14px; }
+    .modal-actions .btn { flex: 1; }
+
+    /* Report Table */
+    .table-wrap { overflow-x: auto; margin-top: 10px; border: 1px solid var(--border); border-radius: 8px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: left; }
+    th, td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+    th { background: #f1f5f9; font-weight: 700; color: #475569; }
+
+    .empty-state { text-align: center; padding: 30px 10px; color: var(--text-muted); font-size: 0.9rem; }
+
+    /* Print Formatting */
+    @media print {
+      body { background: white; padding: 0; }
+      header, .bottom-nav, .no-print, input, select, .btn { display: none !important; }
+      #tab-reports { display: block !important; padding: 0; max-width: 100%; }
+      .card { border: none; box-shadow: none; padding: 0; }
+      .table-wrap { border: 1px solid #000; }
+      table { border-collapse: collapse; width: 100%; font-size: 10pt; }
+      th, td { border: 1px solid #000 !important; color: #000 !important; }
+      .print-header { display: block !important; text-align: center; margin-bottom: 12px; }
+    }
+    .print-header { display: none; }
+  </style>
+</head>
+<body>
+
+  <!-- Top App Bar -->
+  <header>
+    <div class="header-title">
+      <span>হাজিরা খাতা (Roll Call)</span>
+      <span id="headerClassBadge" style="font-size: 0.75rem; background: var(--primary-dark); padding: 2px 8px; border-radius: 4px;">-</span>
+    </div>
+    <div class="header-sub">১০০% অফলাইন স্কুল রেজিস্টার</div>
+  </header>
+
+  <!-- TAB 1: DAILY ATTENDANCE (হাজিরা) -->
+  <main id="tab-attendance" class="tab-content active">
+    <div class="card">
+      <div style="display: flex; gap: 8px;">
+        <div style="flex: 1;">
+          <label>শ্রেণি (Class):</label>
+          <select id="attClassSelect" onchange="onClassChange()"></select>
+        </div>
+        <div style="flex: 1;">
+          <label>তারিখ (Date):</label>
+          <input type="date" id="attDatePicker" onchange="loadDailyAttendance()">
+        </div>
+      </div>
+
+      <div class="stats-bar">
+        <div class="stat-box stat-p">উপস্থিত (P)<span id="count-P">0</span></div>
+        <div class="stat-box stat-a">অনুপস্থিত (A)<span id="count-A">0</span></div>
+        <div class="stat-box stat-l">বিলম্ব (L)<span id="count-L">0</span></div>
+        <div class="stat-box stat-lv">ছুটি (Lv)<span id="count-Lv">0</span></div>
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+        <button class="btn btn-secondary btn-sm" style="flex: 1;" onclick="markAll('P')">✓ সবাই উপস্থিত</button>
+        <button class="btn btn-secondary btn-sm" style="flex: 1;" onclick="markAll('A')">✕ সবাই অনুপস্থিত</button>
+      </div>
+
+      <input type="text" id="attSearchInput" placeholder="রোল বা নাম খুঁজুন (Search)..." oninput="filterAttendanceList()" style="margin-bottom: 0;">
+    </div>
+
+    <div class="card" style="padding: 4px;">
+      <div id="attendanceStudentList"></div>
+    </div>
+  </main>
+
+  <!-- TAB 2: STUDENTS & CLASSES (শিক্ষার্থী ও শ্রেণি) -->
+  <main id="tab-students" class="tab-content">
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <h3 style="font-size: 1rem;">শ্রেণি ব্যবস্থাপনা (Classes)</h3>
+        <button class="btn btn-primary btn-sm" style="width: auto;" onclick="openAddClassModal()">+ নতুন শ্রেণি</button>
+      </div>
+      <div id="classListContainer"></div>
+    </div>
+
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <h3 style="font-size: 1rem;">শিক্ষার্থী তালিকা (Students)</h3>
+        <button class="btn btn-primary btn-sm" style="width: auto;" onclick="openAddStudentModal()">+ শিক্ষার্থী যোগ</button>
+      </div>
+      <label>নির্বাচিত শ্রেণি:</label>
+      <select id="manageStudentClassSelect" onchange="loadStudentManagementList()"></select>
+      <div id="studentManagementList"></div>
+    </div>
+  </main>
+
+  <!-- TAB 3: MONTHLY REPORTS (রিপোর্ট) -->
+  <main id="tab-reports" class="tab-content">
+    <div class="print-header">
+      <h2 id="printReportTitle">মাসিক হাজিরা রিপোর্ট</h2>
+      <p id="printReportMeta"></p>
+    </div>
+
+    <div class="card no-print">
+      <div style="display: flex; gap: 8px;">
+        <div style="flex: 1;">
+          <label>শ্রেণি (Class):</label>
+          <select id="reportClassSelect"></select>
+        </div>
+        <div style="flex: 1;">
+          <label>মাস (Month):</label>
+          <input type="month" id="reportMonthPicker">
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="generateMonthlyReport()">রিপোর্ট তৈরি করুন (View Report)</button>
+    </div>
+
+    <div class="card" id="reportResultCard" style="display: none;">
+      <div class="no-print" style="display: flex; gap: 8px; margin-bottom: 12px;">
+        <button class="btn btn-secondary btn-sm" style="flex: 1;" onclick="exportReportCSV()">📥 CSV ডাউনলোড</button>
+        <button class="btn btn-secondary btn-sm" style="flex: 1;" onclick="printReport()">🖨️ প্রিন্ট / PDF</button>
+      </div>
+      <div id="reportSummaryText" style="font-size: 0.85rem; font-weight: 600; margin-bottom: 6px;"></div>
+      <div class="table-wrap">
+        <table id="reportTable">
+          <thead>
+            <tr>
+              <th>রোল</th>
+              <th>নাম</th>
+              <th>P</th>
+              <th>A</th>
+              <th>L</th>
+              <th>Lv</th>
+              <th>হাজিরা %</th>
+            </tr>
+          </thead>
+          <tbody id="reportTableBody"></tbody>
+        </table>
+      </div>
+      <p style="font-size: 0.72rem; color: var(--text-muted); margin-top: 8px;">* শতকরা হার শুধুমাত্র হাজিরা নেওয়া দিনগুলোর উপর হিসাব করা হয়েছে। সূত্র: ((P + L) ÷ মোট দিন) × ১০০</p>
+    </div>
+  </main>
+
+  <!-- TAB 4: BACKUP & SETTINGS (ব্যাকআপ) -->
+  <main id="tab-backup" class="tab-content">
+    <div class="card">
+      <h3 style="font-size: 1rem; margin-bottom: 6px;">ডাটা ব্যাকআপ (Backup Data)</h3>
+      <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px;">
+        আপনার সমস্ত ক্লাস, শিক্ষার্থী এবং হাজিরার তথ্য আপনার ফোনের মেমোরিতে (IndexedDB) সংরক্ষিত আছে। ফোন পরিবর্তন, ব্রাউজার ডাটা ক্লিয়ার বা ফোন নষ্ট হলে ডাটা হারাতে পারে। তাই প্রতি সপ্তাহে ব্যাকআপ ফাইল ডাউনলোড করে Google Drive অথবা WhatsApp-এ নিজের কাছে রেখে দিন।
+      </p>
+      <button class="btn btn-primary" onclick="backupDatabaseJSON()">💾 ব্যাকআপ ফাইল ডাউনলোড করুন (JSON)</button>
+    </div>
+
+    <div class="card">
+      <h3 style="font-size: 1rem; margin-bottom: 6px;">ব্যাকআপ পুনরুদ্ধার (Restore Data)</h3>
+      <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px;">
+        পূর্বে সংরক্ষিত JSON ব্যাকআপ ফাইল সিলেক্ট করে ডাটা ফেরত আনুন।
+      </p>
+      <input type="file" id="restoreFileInput" accept=".json" style="margin-bottom: 8px;">
+      <button class="btn btn-secondary" style="width: 100%;" onclick="restoreDatabaseJSON()">🔄 ব্যাকআপ ফাইল রিস্টোর করুন</button>
+    </div>
+
+    <div class="card">
+      <h3 style="font-size: 1rem; margin-bottom: 6px;">অ্যাপ ইনস্টলেশন গাইড (PWA)</h3>
+      <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
+        এই অ্যাপটি ইন্টারনেট ছাড়া ব্যবহার করতে Android Chrome-এর উপরের ডানপাশের <b>তিনটি ডট (⋮)</b> চেপে <b>"Install app"</b> বা <b>"Add to Home screen"</b> নির্বাচন করুন। অ্যাপ আইকন আপনার মোবাইলের স্ক্রিনে চলে আসবে।
+      </p>
+    </div>
+  </main>
+
+  <!-- Bottom Navigation Bar -->
+  <nav class="bottom-nav no-print">
+    <button class="nav-btn active" onclick="switchTab('tab-attendance', this)">
+      <svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
+      হাজিরা
+    </button>
+    <button class="nav-btn" onclick="switchTab('tab-students', this)">
+      <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+      শিক্ষার্থী
+    </button>
+    <button class="nav-btn" onclick="switchTab('tab-reports', this)">
+      <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+      রিপোর্ট
+    </button>
+    <button class="nav-btn" onclick="switchTab('tab-backup', this)">
+      <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+      ব্যাকআপ
+    </button>
+  </nav>
+
+  <!-- Modal Component -->
+  <div id="modalOverlay" class="modal-overlay">
+    <div class="modal">
+      <h4 id="modalTitle" class="modal-title"></h4>
+      <div id="modalBody"></div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal()">বাতিল (Cancel)</button>
+        <button id="modalConfirmBtn" class="btn btn-primary">নিশ্চিত (OK)</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ============================================================
+       1. DATABASE LAYER (Pure IndexedDB - Zero External Storage)
+       ============================================================ */
+    const DB_NAME = 'HaziraKhataDB';
+    const DB_VERSION = 1;
+    let db;
+
+    function initDB() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = (e) => {
+          const database = e.target.result;
+          if (!database.objectStoreNames.contains('classes')) {
+            database.createObjectStore('classes', { keyPath: 'id' });
+          }
+          if (!database.objectStoreNames.contains('students')) {
+            const studentStore = database.createObjectStore('students', { keyPath: 'id' });
+            studentStore.createIndex('classId', 'classId', { unique: false });
+          }
+          if (!database.objectStoreNames.contains('attendance')) {
+            // Key: classId_date e.g., "c1_2026-10-25"
+            database.createObjectStore('attendance', { keyPath: 'key' });
+          }
+        };
+        req.onsuccess = () => {
+          db = req.result;
+          resolve(db);
+        };
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    const DB = {
+      getAll: (storeName) => new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, 'readonly');
+        const req = tx.objectStore(storeName).getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => reject(req.error);
+      }),
+      put: (storeName, data) => new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, 'readwrite');
+        tx.objectStore(storeName).put(data);
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => reject(tx.error);
+      }),
+      delete: (storeName, key) => new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, 'readwrite');
+        tx.objectStore(storeName).delete(key);
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => reject(tx.error);
+      }),
+      get: (storeName, key) => new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, 'readonly');
+        const req = tx.objectStore(storeName).get(key);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      }),
+      clear: (storeName) => new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, 'readwrite');
+        tx.objectStore(storeName).clear();
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => reject(tx.error);
+      })
+    };
+
+    /* ============================================================
+       2. APP INITIALIZATION & NAVIGATION
+       ============================================================ */
+    let currentClassId = '';
+    let currentAttendance = {}; // studentId -> 'P'|'A'|'L'|'Lv'
+    let currentStudents = [];
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      // Register service worker if available
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js').catch(() => console.log('SW offline'));
+      }
+
+      await initDB();
+      setDefaultDates();
+      await refreshClassDropdowns();
+      await loadDailyAttendance();
+    });
+
+    function setDefaultDates() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('attDatePicker').value = today;
+      document.getElementById('reportMonthPicker').value = today.slice(0, 7);
+    }
+
+    function switchTab(tabId, el) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      el.classList.add('active');
+
+      if (tabId === 'tab-students') loadStudentManagementList();
+      if (tabId === 'tab-attendance') loadDailyAttendance();
+    }
+
+    /* ============================================================
+       3. CLASS MANAGEMENT
+       ============================================================ */
+    async function refreshClassDropdowns() {
+      const classes = await DB.getAll('classes');
+      classes.sort((a, b) => a.name.localeCompare(b.name));
+
+      const selects = [
+        document.getElementById('attClassSelect'),
+        document.getElementById('manageStudentClassSelect'),
+        document.getElementById('reportClassSelect')
+      ];
+
+      selects.forEach(sel => {
+        const prev = sel.value;
+        sel.innerHTML = '';
+        if (classes.length === 0) {
+          sel.innerHTML = '<option value="">শ্রেণি নেই (No Class)</option>';
+        } else {
+          classes.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = `${c.name} ${c.section ? `(${c.section})` : ''}`;
+            sel.appendChild(opt);
+          });
+          if (prev && classes.some(c => c.id === prev)) {
+            sel.value = prev;
+          }
+        }
+      });
+
+      if (!currentClassId && classes.length > 0) {
+        currentClassId = classes[0].id;
+      }
+      updateHeaderBadge();
+      renderClassList(classes);
+    }
+
+    function updateHeaderBadge() {
+      const sel = document.getElementById('attClassSelect');
+      const badge = document.getElementById('headerClassBadge');
+      badge.textContent = sel.selectedOptions[0] ? sel.selectedOptions[0].textContent : '-';
+    }
+
+    function renderClassList(classes) {
+      const container = document.getElementById('classListContainer');
+      if (classes.length === 0) {
+        container.innerHTML = '<div class="empty-state">কোনো শ্রেণি তৈরি করা হয়নি। "নতুন শ্রেণি" বাটনে চাপ দিন।</div>';
+        return;
+      }
+      let html = '<div style="display:flex; flex-direction:column; gap:6px;">';
+      classes.forEach(c => {
+        html += `
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px;">
+            <div><b>${escapeHTML(c.name)}</b> ${c.section ? `<span style="color:#64748b;">(শাখা: ${escapeHTML(c.section)})</span>` : ''}</div>
+            <button class="btn btn-danger btn-sm" onclick="confirmDeleteClass('${c.id}', '${escapeHTML(c.name)}')">মুছুন</button>
+          </div>
+        `;
+      });
+      html += '</div>';
+      container.innerHTML = html;
+    }
+
+    function openAddClassModal() {
+      openModal(
+        'নতুন শ্রেণি যোগ করুন (Add Class)',
+        `
+        <label>শ্রেণির নাম (যেমন: ষষ্ঠ শ্রেণি, Class 6) *</label>
+        <input type="text" id="modalClassName" placeholder="নাম লিখুন">
+        <label>শাখা / সেকশন (যেমন: ক, A) - ঐচ্ছিক</label>
+        <input type="text" id="modalClassSection" placeholder="শাখা লিখুন">
+        `,
+        async () => {
+          const name = document.getElementById('modalClassName').value.trim();
+          const section = document.getElementById('modalClassSection').value.trim();
+          if (!name) {
+            alert('শ্রেণির নাম খালি রাখা যাবে না!');
+            return false;
+          }
+          const id = 'class_' + Date.now();
+          await DB.put('classes', { id, name, section });
+          await refreshClassDropdowns();
+          await loadDailyAttendance();
+          return true;
+        }
+      );
+    }
+
+    function confirmDeleteClass(classId, className) {
+      openModal(
+        'শ্রেণি মুছে ফেলার নিশ্চিতকরণ',
+        `<p style="font-size:0.9rem; color:#b91c1c;">আপনি কি নিশ্চিতভাবে <b>${className}</b> মুছে ফেলতে চান?<br><br>এই শ্রেণির সমস্ত শিক্ষার্থী ও হাজিরা চিরতরে মুছে যাবে!</p>`,
+        async () => {
+          await DB.delete('classes', classId);
+          // Delete all students of this class
+          const students = await DB.getAll('students');
+          for (let s of students) {
+            if (s.classId === classId) await DB.delete('students', s.id);
+          }
+          // Delete all attendance records of this class
+          const allAtt = await DB.getAll('attendance');
+          for (let att of allAtt) {
+            if (att.classId === classId) await DB.delete('attendance', att.key);
+          }
+          await refreshClassDropdowns();
+          await loadDailyAttendance();
+          return true;
+        }
+      );
+    }
+
+    /* ============================================================
+       4. STUDENT MANAGEMENT & DUPLICATE VALIDATION
+       ============================================================ */
+    async function loadStudentManagementList() {
+      const classId = document.getElementById('manageStudentClassSelect').value;
+      const container = document.getElementById('studentManagementList');
+      if (!classId) {
+        container.innerHTML = '<div class="empty-state">কোনো শ্রেণি নির্বাচন করা হয়নি।</div>';
+        return;
+      }
+
+      const allStudents = await DB.getAll('students');
+      const students = allStudents
+        .filter(s => s.classId === classId)
+        .sort((a, b) => Number(a.roll) - Number(b.roll));
+
+      if (students.length === 0) {
+        container.innerHTML = '<div class="empty-state">এই শ্রেণিতে কোনো শিক্ষার্থী নেই। শিক্ষার্থী যোগ করুন।</div>';
+        return;
+      }
+
+      let html = '<div style="display:flex; flex-direction:column; gap:6px; margin-top:8px;">';
+      students.forEach(s => {
+        html += `
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 10px; border:1px solid #e2e8f0; border-radius:6px; background:#fff;">
+            <div>
+              <span class="student-roll" style="display:inline-block; margin-right:6px;">${s.roll}</span>
+              <span style="font-weight:600;">${escapeHTML(s.name)}</span>
+            </div>
+            <div style="display:flex; gap:6px;">
+              <button class="btn btn-secondary btn-sm" onclick="openEditStudentModal('${s.id}')">সম্পাদনা</button>
+              <button class="btn btn-danger btn-sm" onclick="confirmDeleteStudent('${s.id}', '${escapeHTML(s.name)}')">মুছুন</button>
+            </div>
+          </div>
+        `;
+      });
+      html += '</div>';
+      container.innerHTML = html;
+    }
+
+    async function openAddStudentModal() {
+      const classId = document.getElementById('manageStudentClassSelect').value || currentClassId;
+      if (!classId) {
+        alert('আগে একটি শ্রেণি তৈরি করুন!');
+        return;
+      }
+
+      openModal(
+        'নতুন শিক্ষার্থী যোগ করুন',
+        `
+        <label>রোল নম্বর (Roll Number) *</label>
+        <input type="number" id="modalStudentRoll" placeholder="যেমন: 1, 2">
+        <label>শিক্ষার্থীর পূর্ণ নাম (Name) *</label>
+        <input type="text" id="modalStudentName" placeholder="নাম লিখুন">
+        `,
+        async () => {
+          const roll = document.getElementById('modalStudentRoll').value.trim();
+          const name = document.getElementById('modalStudentName').value.trim();
+
+          if (!roll || !name) {
+            alert('রোল এবং নাম আবশ্যক!');
+            return false;
+          }
+
+          // Check duplicate roll in same class
+          const allStudents = await DB.getAll('students');
+          const isDuplicate = allStudents.some(s => s.classId === classId && Number(s.roll) === Number(roll));
+          if (isDuplicate) {
+            alert(`এই শ্রেণিতে রোল নম্বর ${roll} ইতিমধ্যে বিদ্যমান! ভিন্ন রোল লিখুন।`);
+            return false;
+          }
+
+          const id = 'student_' + Date.now();
+          await DB.put('students', { id, classId, roll: Number(roll), name });
+          await loadStudentManagementList();
+          await loadDailyAttendance();
+          return true;
+        }
+      );
+    }
+
+    async function openEditStudentModal(studentId) {
+      const student = await DB.get('students', studentId);
+      if (!student) return;
+
+      openModal(
+        'শিক্ষার্থীর তথ্য সম্পাদনা',
+        `
+        <label>রোল নম্বর *</label>
+        <input type="number" id="modalEditRoll" value="${student.roll}">
+        <label>শিক্ষার্থীর নাম *</label>
+        <input type="text" id="modalEditName" value="${escapeHTML(student.name)}">
+        `,
+        async () => {
+          const roll = document.getElementById('modalEditRoll').value.trim();
+          const name = document.getElementById('modalEditName').value.trim();
+          if (!roll || !name) {
+            alert('রোল এবং নাম আবশ্যক!');
+            return false;
+          }
+
+          // Check duplicate roll except itself
+          const allStudents = await DB.getAll('students');
+          const isDuplicate = allStudents.some(s => s.classId === student.classId && s.id !== student.id && Number(s.roll) === Number(roll));
+          if (isDuplicate) {
+            alert(`এই শ্রেণিতে রোল নম্বর ${roll} ইতিমধ্যে রয়েছে!`);
+            return false;
+          }
+
+          student.roll = Number(roll);
+          student.name = name;
+          await DB.put('students', student);
+          await loadStudentManagementList();
+          await loadDailyAttendance();
+          return true;
+        }
+      );
+    }
+
+    function confirmDeleteStudent(studentId, name) {
+      openModal(
+        'শিক্ষার্থী মুছে ফেলার নিশ্চিতকরণ',
+        `<p style="font-size:0.9rem; color:#b91c1c;">আপনি কি নিশ্চিতভাবে <b>${name}</b>-কে তালিকা থেকে মুছে দিতে চান?</p>`,
+        async () => {
+          await DB.delete('students', studentId);
+          await loadStudentManagementList();
+          await loadDailyAttendance();
+          return true;
+        }
+      );
+    }
+
+    /* ============================================================
+       5. DAILY ATTENDANCE RECORDING
+       ============================================================ */
+    async function onClassChange() {
+      currentClassId = document.getElementById('attClassSelect').value;
+      updateHeaderBadge();
+      await loadDailyAttendance();
+    }
+
+    async function loadDailyAttendance() {
+      const classId = document.getElementById('attClassSelect').value;
+      const date = document.getElementById('attDatePicker').value;
+      const listContainer = document.getElementById('attendanceStudentList');
+
+      if (!classId || !date) {
+        listContainer.innerHTML = '<div class="empty-state">শ্রেণি বা তারিখ নির্বাচন করুন।</div>';
+        return;
+      }
+
+      const allStudents = await DB.getAll('students');
+      currentStudents = allStudents
+        .filter(s => s.classId === classId)
+        .sort((a, b) => Number(a.roll) - Number(b.roll));
+
+      if (currentStudents.length === 0) {
+        listContainer.innerHTML = '<div class="empty-state">এই শ্রেণিতে কোনো শিক্ষার্থী নেই। "শিক্ষার্থী" ট্যাবে গিয়ে শিক্ষার্থী যোগ করুন।</div>';
+        updateStats();
+        return;
+      }
+
+      // Load existing attendance record for classId_date
+      const key = `${classId}_${date}`;
+      const savedRecord = await DB.get('attendance', key);
+      currentAttendance = savedRecord ? (savedRecord.records || {}) : {};
+
+      // Default unmarked students to Present ('P') automatically if never marked
+      let isFirstTime = false;
+      currentStudents.forEach(s => {
+        if (!currentAttendance[s.id]) {
+          currentAttendance[s.id] = 'P';
+          isFirstTime = true;
+        }
+      });
+      if (isFirstTime) {
+        await saveCurrentAttendanceQuietly();
+      }
+
+      renderAttendanceList(currentStudents);
+      updateStats();
+    }
+
+    function renderAttendanceList(students) {
+      const listContainer = document.getElementById('attendanceStudentList');
+      if (students.length === 0) {
+        listContainer.innerHTML = '<div class="empty-state">কোনো শিক্ষার্থী পাওয়া যায়নি।</div>';
+        return;
+      }
+
+      let html = '';
+      students.forEach(s => {
+        const val = currentAttendance[s.id] || 'P';
+        html += `
+          <div class="student-item" id="student-row-${s.id}">
+            <div class="student-info">
+              <span class="student-roll">${s.roll}</span>
+              <span class="student-name">${escapeHTML(s.name)}</span>
+            </div>
+            <div class="att-toggle">
+              <button class="att-btn ${val === 'P' ? 'active-P' : ''}" onclick="setAttendance('${s.id}', 'P')">উপস্থিত (P)</button>
+              <button class="att-btn ${val === 'A' ? 'active-A' : ''}" onclick="setAttendance('${s.id}', 'A')">অনুপস্থিত (A)</button>
+              <button class="att-btn ${val === 'L' ? 'active-L' : ''}" onclick="setAttendance('${s.id}', 'L')">বিলম্ব (L)</button>
+              <button class="att-btn ${val === 'Lv' ? 'active-Lv' : ''}" onclick="setAttendance('${s.id}', 'Lv')">ছুটি (Lv)</button>
+            </div>
+          </div>
+        `;
+      });
+      listContainer.innerHTML = html;
+    }
+
+    async function setAttendance(studentId, status) {
+      currentAttendance[studentId] = status;
+
+      // Update button visual state immediately
+      const row = document.getElementById(`student-row-${studentId}`);
+      if (row) {
+        const btns = row.querySelectorAll('.att-btn');
+        btns[0].className = 'att-btn' + (status === 'P' ? ' active-P' : '');
+        btns[1].className = 'att-btn' + (status === 'A' ? ' active-A' : '');
+        btns[2].className = 'att-btn' + (status === 'L' ? ' active-L' : '');
+        btns[3].className = 'att-btn' + (status === 'Lv' ? ' active-Lv' : '');
+      }
+
+      updateStats();
+      await saveCurrentAttendanceQuietly();
+    }
+
+    async function markAll(status) {
+      if (currentStudents.length === 0) return;
+      currentStudents.forEach(s => {
+        currentAttendance[s.id] = status;
+      });
+      renderAttendanceList(currentStudents);
+      updateStats();
+      await saveCurrentAttendanceQuietly();
+    }
+
+    function updateStats() {
+      let p = 0, a = 0, l = 0, lv = 0;
+      currentStudents.forEach(s => {
+        const stat = currentAttendance[s.id];
+        if (stat === 'P') p++;
+        else if (stat === 'A') a++;
+        else if (stat === 'L') l++;
+        else if (stat === 'Lv') lv++;
+      });
+      document.getElementById('count-P').textContent = p;
+      document.getElementById('count-A').textContent = a;
+      document.getElementById('count-L').textContent = l;
+      document.getElementById('count-Lv').textContent = lv;
+    }
+
+    async function saveCurrentAttendanceQuietly() {
+      const classId = document.getElementById('attClassSelect').value;
+      const date = document.getElementById('attDatePicker').value;
+      if (!classId || !date) return;
+
+      const key = `${classId}_${date}`;
+      await DB.put('attendance', {
+        key,
+        classId,
+        date,
+        records: currentAttendance,
+        updatedAt: new Date().toISOString()
+      });
+    }
+
+    function filterAttendanceList() {
+      const q = document.getElementById('attSearchInput').value.toLowerCase().trim();
+      if (!q) {
+        renderAttendanceList(currentStudents);
+        return;
+      }
+      const filtered = currentStudents.filter(s => 
+        String(s.roll).includes(q) || s.name.toLowerCase().includes(q)
+      );
+      renderAttendanceList(filtered);
+    }
+
+    /* ============================================================
+       6. MONTHLY REPORT & CALCULATION ENGINE
+       ============================================================ */
+    let lastReportData = null;
+
+    async function generateMonthlyReport() {
+      const classId = document.getElementById('reportClassSelect').value;
+      const monthStr = document.getElementById('reportMonthPicker').value; // YYYY-MM
+
+      if (!classId || !monthStr) {
+        alert('শ্রেণি ও মাস সিলেক্ট করুন!');
+        return;
+      }
+
+      const allStudents = await DB.getAll('students');
+      const students = allStudents
+        .filter(s => s.classId === classId)
+        .sort((a, b) => Number(a.roll) - Number(b.roll));
+
+      if (students.length === 0) {
+        alert('এই শ্রেণিতে কোনো শিক্ষার্থী নেই!');
+        return;
+      }
+
+      // Fetch all attendance for this class in this month
+      const allAtt = await DB.getAll('attendance');
+      const monthRecords = allAtt.filter(att => att.classId === classId && att.date.startsWith(monthStr));
+
+      const totalRecordedDays = monthRecords.length;
+      const classInfo = (await DB.get('classes', classId)) || { name: 'Class', section: '' };
+
+      const studentStats = students.map(s => {
+        let p = 0, a = 0, l = 0, lv = 0;
+        monthRecords.forEach(rec => {
+          const status = rec.records[s.id];
+          if (status === 'P') p++;
+          else if (status === 'A') a++;
+          else if (status === 'L') l++;
+          else if (status === 'Lv') lv++;
+        });
+
+        // Percentage strictly based on recorded attendance days: (P + L) / totalRecordedDays * 100
+        const percentage = totalRecordedDays > 0 ? (((p + l) / totalRecordedDays) * 100).toFixed(1) : '0.0';
+        return {
+          id: s.id,
+          roll: s.roll,
+          name: s.name,
+          p, a, l, lv,
+          percentage
+        };
+      });
+
+      lastReportData = {
+        className: `${classInfo.name} ${classInfo.section ? `(${classInfo.section})` : ''}`,
+        month: monthStr,
+        totalRecordedDays,
+        stats: studentStats
+      };
+
+      renderReportTable();
+    }
+
+    function renderReportTable() {
+      if (!lastReportData) return;
+      const tbody = document.getElementById('reportTableBody');
+      const card = document.getElementById('reportResultCard');
+      const summary = document.getElementById('reportSummaryText');
+
+      summary.textContent = `শ্রেণি: ${lastReportData.className} | মাস: ${lastReportData.month} | মোট হাজিরা নেওয়া দিন: ${lastReportData.totalRecordedDays}`;
+      document.getElementById('printReportTitle').textContent = `হাজিরা রেজিস্টার - ${lastReportData.className}`;
+      document.getElementById('printReportMeta').textContent = `মাস: ${lastReportData.month} | মোট ক্লাস কার্যদিবস: ${lastReportData.totalRecordedDays}`;
+
+      let html = '';
+      lastReportData.stats.forEach(st => {
+        html += `
+          <tr>
+            <td style="font-weight:700;">${st.roll}</td>
+            <td>${escapeHTML(st.name)}</td>
+            <td style="color:var(--p-color); font-weight:700;">${st.p}</td>
+            <td style="color:var(--a-color); font-weight:700;">${st.a}</td>
+            <td style="color:var(--l-color);">${st.l}</td>
+            <td style="color:var(--lv-color);">${st.lv}</td>
+            <td style="font-weight:800; color: ${Number(st.percentage) < 75 ? '#dc2626' : '#15803d'};">${st.percentage}%</td>
+          </tr>
+        `;
+      });
+      tbody.innerHTML = html;
+      card.style.display = 'block';
+    }
+
+    /* ============================================================
+       7. CSV EXPORT & PRINT (PDF)
+       ============================================================ */
+    function exportReportCSV() {
+      if (!lastReportData) return;
+      // \uFEFF BOM ensures Bengali script displays properly in Microsoft Excel and Android viewers
+      let csv = '\uFEFF';
+      csv += `"রোল","নাম","উপস্থিত (P)","অনুপস্থিত (A)","বিলম্ব (L)","ছুটি (Lv)","হাজিরা %","মোট হাজিরা দিন: ${lastReportData.totalRecordedDays}"\n`;
+
+      lastReportData.stats.forEach(st => {
+        csv += `"${st.roll}","${st.name.replace(/"/g, '""')}","${st.p}","${st.a}","${st.l}","${st.lv}","${st.percentage}%"\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Attendance_${lastReportData.className.replace(/\s+/g, '_')}_${lastReportData.month}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    function printReport() {
+      if (!lastReportData) return;
+      window.print();
+    }
+
+    /* ============================================================
+       8. JSON BACKUP & RESTORE
+       ============================================================ */
+    async function backupDatabaseJSON() {
+      const classes = await DB.getAll('classes');
+      const students = await DB.getAll('students');
+      const attendance = await DB.getAll('attendance');
+
+      const backupData = {
+        app: 'HaziraKhataPWA',
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        classes,
+        students,
+        attendance
+      };
+
+      const jsonStr = JSON.stringify(backupData, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      const date = new Date().toISOString().split('T')[0];
+      link.href = url;
+      link.download = `hazira_backup_${date}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    async function restoreDatabaseJSON() {
+      const fileInput = document.getElementById('restoreFileInput');
+      if (!fileInput.files || fileInput.files.length === 0) {
+        alert('দয়া করে একটি ব্যাকআপ JSON ফাইল নির্বাচন করুন!');
+        return;
+      }
+
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (!data.classes || !data.students || !data.attendance) {
+            throw new Error('অবৈধ ব্যাকআপ ফাইল (Invalid file structure)');
+          }
+
+          openModal(
+            'ব্যাকআপ প্রতিস্থাপন নিশ্চিতকরণ',
+            '<p style="font-size:0.9rem; color:#b91c1c;">সতর্কতা: বর্তমান ডাটা মুছে ফেলে ব্যাকআপ ফাইলের ডাটা স্থাপন করা হবে। আপনি কি নিশ্চিত?</p>',
+            async () => {
+              await DB.clear('classes');
+              await DB.clear('students');
+              await DB.clear('attendance');
+
+              for (let c of data.classes) await DB.put('classes', c);
+              for (let s of data.students) await DB.put('students', s);
+              for (let a of data.attendance) await DB.put('attendance', a);
+
+              alert('ডাটা সফলভাবে পুনরুদ্ধার (Restore) হয়েছে!');
+              fileInput.value = '';
+              await refreshClassDropdowns();
+              await loadDailyAttendance();
+              return true;
+            }
+          );
+        } catch (err) {
+          alert('ফাইলটি পড়া যায়নি। সঠিক ব্যাকআপ ফাইল নির্বাচন করুন: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    /* ============================================================
+       9. MODAL HELPER & ESCAPING
+       ============================================================ */
+    function openModal(title, bodyHTML, onConfirmCallback) {
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modalBody').innerHTML = bodyHTML;
+      const overlay = document.getElementById('modalOverlay');
+      const confirmBtn = document.getElementById('modalConfirmBtn');
+
+      confirmBtn.onclick = async () => {
+        const success = await onConfirmCallback();
+        if (success) closeModal();
+      };
+
+      overlay.classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.remove('active');
+    }
+
+    function escapeHTML(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>
